@@ -65,10 +65,10 @@ const ThreadList: React.FC<ThreadListProps> = ({ threads }) => {
               )}
             <div className="flex items-center text-sm text-gray-600 mb-3">
               <p className="flex items-center flex-row mr-4">
-                <FaComment /> {thread.data.num_comments}
+                <FaComment className="mr-2" /> {thread.data.num_comments}
               </p>
               <p className="flex items-center flex-row">
-                <FaArrowUp /> {thread.data.score}
+                <FaArrowUp className="mr-2" /> {thread.data.score}
               </p>
             </div>
           </li>
