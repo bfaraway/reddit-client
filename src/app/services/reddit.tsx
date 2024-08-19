@@ -19,6 +19,13 @@ export interface Thread {
     };
     thumbnail: string;
     url: string;
+    comments: {
+      id: string;
+      author: string;
+      body: string;
+      score: number;
+      created_utc: number;
+    }[];
   };
 }
 
@@ -31,7 +38,12 @@ export default async function getThreads(
   console.log("SearchTerm", searchTerm);
   try {
     const response = await fetch(
-      `https://api.reddit.com/search?q=${searchTerm}`
+      `https://api.reddit.com/search?q=${searchTerm}&raw_json=1&sort=relevance&limit=5`,
+      {
+        headers: {
+          'User-Agent': 'MyApp/1.0.0'
+        }
+      }
     );
 
     if (!response.ok) {
@@ -41,23 +53,44 @@ export default async function getThreads(
 
     const data = await response.json();
 
-    const threads: Thread[] = data.data.children.map((child: any) => ({
-      id: child.data.id,
-      title: child.data.title,
-      author: child.data.author,
-      created_utc: child.data.created_utc,
-      num_comments: child.data.num_comments,
-      score: child.data.score,
-      selftext: child.data.selftext,
-      is_video: child.data.is_video,
-      is_image: child.data.is_image,
-      media: child.data.media,
-      thumbnail: child.data.thumbnail,
-      url: child.data.url,
+    const threads: Thread[] = await Promise.all(data.data.children.map(async (child: any) => {
+      const commentsResponse = await fetch(
+        `https://api.reddit.com${child.data.permalink}.json?raw_json=1`,
+        {
+          headers: {
+            'User-Agent': 'MyApp/1.0.0'
+          }
+        }
+      );
+      const commentsData = await commentsResponse.json();
+      
+      return {
+        data: {
+          id: child.data.id,
+          title: child.data.title,
+          author: child.data.author,
+          created_utc: child.data.created_utc,
+          num_comments: child.data.num_comments,
+          score: child.data.score,
+          selftext: child.data.selftext,
+          is_video: child.data.is_video,
+          is_image: child.data.is_image,
+          media: child.data.media,
+          thumbnail: child.data.thumbnail,
+          url: child.data.url,
+          comments: commentsData[1].data.children.map((comment: any) => ({
+            id: comment.data.id,
+            author: comment.data.author,
+            body: comment.data.body,
+            score: comment.data.score,
+            created_utc: comment.data.created_utc
+          }))
+        }
+      };
     }));
 
     revalidatePath("/");
-    return data.data.children;
+    return threads;
   } catch (error) {
     console.error(error);
     return [];
