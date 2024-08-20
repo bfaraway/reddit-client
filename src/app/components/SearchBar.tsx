@@ -2,36 +2,37 @@
 
 import { useState } from "react";
 import Btn from "./Btn";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const SearchBar: React.FC = () => {
   const [search, setSearch] = useState("");
   const router = useRouter();
-  const pathname = usePathname();
 
-  const handeInputChange = (e: any) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
 
-  const handleSearch = async (e: any) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams();
-    params.set("search", search);
-    router.push(`${pathname}?${params.toString()}`);
+    if (search.trim()) {
+      router.push(`/?search=${encodeURIComponent(search.trim())}`);
+    } else {
+      router.push('/');
+    }
   };
 
   return (
     <div className="w-full">
       <form
-        className=" w-full flex items-center justify-center"
+        className="w-full flex items-center justify-center"
         onSubmit={handleSearch}
       >
         <input
-          className=" w-full focus:outline-none focus:ring-1 focus:ring-black rounded-md p-2 mr-2"
+          className="w-full focus:outline-none focus:ring-1 focus:ring-black rounded-md p-2 mr-2"
           type="text"
-          alt="Song title"
+          placeholder="Search Reddit"
           value={search}
-          onChange={handeInputChange}
+          onChange={handleInputChange}
         />
         <Btn text="Search" />
       </form>

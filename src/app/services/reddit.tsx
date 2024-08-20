@@ -30,20 +30,17 @@ export interface Thread {
   };
 }
 
-export default async function getThreads(searchTerm: string): Promise<Thread[]> {
-  if (!searchTerm) {
-    return [];
-  }
-  console.log("SearchTerm", searchTerm);
+export default async function getThreads(searchTerm?: string): Promise<Thread[]> {
+  const url = searchTerm
+    ? `https://api.reddit.com/search?q=${searchTerm}&raw_json=1&sort=relevance&limit=5`
+    : `https://api.reddit.com/r/popular.json?raw_json=1&limit=5`;
+
   try {
-    const response = await fetch(
-      `https://api.reddit.com/search?q=${searchTerm}&raw_json=1&sort=relevance&limit=5`,
-      {
-        headers: {
-          'User-Agent': 'MyApp/1.0.0'
-        }
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'MyApp/1.0.0'
       }
-    );
+    });
 
     if (!response.ok) {
       console.error(`HTTP error! status: ${response.status}`);

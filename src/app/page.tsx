@@ -7,9 +7,9 @@ import getThreads from "./services/reddit";
 export default async function Home({
   searchParams: { search },
 }: {
-  searchParams: { search: string };
+  searchParams: { search?: string };
 }) {
-  const fetchedThreads = await getThreads(search);
+  const fetchedThreads = await getThreads(search || undefined);
 
   return (
     <main className="flex min-h-screen flex-col items-center">

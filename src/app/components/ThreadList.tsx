@@ -5,11 +5,30 @@ import React, { useState } from "react";
 import { Thread } from "../services/reddit";
 import { FaArrowUp, FaArrowDown, FaComment } from "react-icons/fa";
 
+
 type ThreadListProps = {
   threads: Thread[];
+  error?: string;
 };
 
-const ThreadList: React.FC<ThreadListProps> = ({ threads }) => {
+const ThreadList: React.FC<ThreadListProps> = ({ threads, error }) => {
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-md p-4 mt-6">
+        <p className="text-red-500 font-bold">Error: {error}</p>
+        <p>Please try again later or contact support if the problem persists.</p>
+      </div>
+    );
+  }
+
+  if (threads.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-md p-4 mt-6">
+        <p>No threads found. Try a different search term.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center rounded-md p-4 mt-6">
       <ul className="w-1/2">
@@ -32,7 +51,7 @@ const ThreadItem: React.FC<{ thread: Thread }> = React.memo(({ thread }) => {
     <li className="flex flex-col mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center text-sm text-gray-600 mb-2">
         <p className="mr-4">{thread.data.author}</p>
-        <p>{new Date(thread.data.created_utc * 1000).toLocaleString()}</p>
+        <p>t{thread.data.created_utc}</p>
       </div>
       <h2 className="flex items-left text-left font-bold text-xl mb-2 break-words">
         {thread.data.title}
@@ -95,9 +114,7 @@ const ThreadItem: React.FC<{ thread: Thread }> = React.memo(({ thread }) => {
               <li key={comment.id} className="bg-gray-50 p-3 rounded text-left">
                 <div className="flex items-center text-sm text-gray-600 mb-2">
                   <p className="mr-4">{comment.author}</p>
-                  <p>
-                    {new Date(comment.created_utc * 1000).toLocaleString()}
-                  </p>
+                  <p>{comment.created_utc}</p>
                 </div>
                 <p className="text-gray-800">{comment.body}</p>
                 <p className="text-sm text-gray-600 mt-2">
