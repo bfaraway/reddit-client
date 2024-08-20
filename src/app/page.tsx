@@ -1,9 +1,8 @@
-
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SearchBar from "./components/SearchBar";
 import ThreadList from "./components/ThreadList";
-import getThreads, { Thread } from "./services/reddit";
+import getThreads from "./services/reddit";
 
 export default async function Home({
   searchParams: { search },

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 export interface Thread {
   data: {
+    id: string;
     title: string;
     author: string;
     created_utc: number;
@@ -29,9 +30,7 @@ export interface Thread {
   };
 }
 
-export default async function getThreads(
-  searchTerm: string
-): Promise<Thread[]> {
+export default async function getThreads(searchTerm: string): Promise<Thread[]> {
   if (!searchTerm) {
     return [];
   }
@@ -55,7 +54,7 @@ export default async function getThreads(
 
     const threads: Thread[] = await Promise.all(data.data.children.map(async (child: any) => {
       const commentsResponse = await fetch(
-        `https://api.reddit.com${child.data.permalink}.json?raw_json=1`,
+        `https://api.reddit.com${child.data.permalink}.json?raw_json=1&limit=5`,
         {
           headers: {
             'User-Agent': 'MyApp/1.0.0'
@@ -78,13 +77,15 @@ export default async function getThreads(
           media: child.data.media,
           thumbnail: child.data.thumbnail,
           url: child.data.url,
-          comments: commentsData[1].data.children.map((comment: any) => ({
-            id: comment.data.id,
-            author: comment.data.author,
-            body: comment.data.body,
-            score: comment.data.score,
-            created_utc: comment.data.created_utc
-          }))
+          comments: commentsData[1].data.children
+            .slice(0, 5)
+            .map((comment: any) => ({
+              id: comment.data.id,
+              author: comment.data.author,
+              body: comment.data.body,
+              score: comment.data.score,
+              created_utc: comment.data.created_utc
+            }))
         }
       };
     }));
