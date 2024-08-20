@@ -116,7 +116,7 @@ const ThreadItem: React.FC<{ thread: Thread }> = React.memo(({ thread }) => {
                   <p className="mr-4">{comment.author}</p>
                   <p>{comment.created_utc}</p>
                 </div>
-                <p className="text-gray-800">{comment.body}</p>
+                <p className="text-gray-800 break-words">{comment.body}</p>
                 <p className="text-sm text-gray-600 mt-2">
                   <FaArrowUp className="inline mr-1" /> {comment.score}
                   <FaArrowDown className="inline ml-1" /> 

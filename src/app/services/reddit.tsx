@@ -30,32 +30,36 @@ export interface Thread {
   };
 }
 
-export default async function getThreads(searchTerm?: string): Promise<Thread[]> {
-  const url = searchTerm
-    ? `https://api.reddit.com/search?q=${searchTerm}&raw_json=1&sort=relevance&limit=5`
-    : `https://api.reddit.com/r/popular.json?raw_json=1&limit=5`;
+export default async function getThreads(searchTerm?: string, after?: string): Promise<{ threads: Thread[], nextAfter: string | null }> {
+  const baseUrl = searchTerm
+    ? `https://www.reddit.com/search.json?q=${encodeURIComponent(searchTerm)}&raw_json=1&sort=relevance&limit=5`
+    : `https://www.reddit.com/r/popular.json?raw_json=1&limit=5`;
+
+  const url = after ? `${baseUrl}&after=${after}` : baseUrl;
 
   try {
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'MyApp/1.0.0'
-      }
+      },
+      next: { revalidate: 60 } // Cache for 60 seconds
     });
 
     if (!response.ok) {
       console.error(`HTTP error! status: ${response.status}`);
-      return [];
+      return { threads: [], nextAfter: null };
     }
 
     const data = await response.json();
 
     const threads: Thread[] = await Promise.all(data.data.children.map(async (child: any) => {
       const commentsResponse = await fetch(
-        `https://api.reddit.com${child.data.permalink}.json?raw_json=1&limit=5`,
+        `https://www.reddit.com${child.data.permalink}.json?raw_json=1&limit=5`,
         {
           headers: {
             'User-Agent': 'MyApp/1.0.0'
-          }
+          },
+          next: { revalidate: 60 } // Cache for 60 seconds
         }
       );
       const commentsData = await commentsResponse.json();
@@ -70,7 +74,7 @@ export default async function getThreads(searchTerm?: string): Promise<Thread[]>
           score: child.data.score,
           selftext: child.data.selftext,
           is_video: child.data.is_video,
-          is_image: child.data.is_image,
+          is_image: child.data.post_hint === 'image',
           media: child.data.media,
           thumbnail: child.data.thumbnail,
           url: child.data.url,
@@ -88,9 +92,9 @@ export default async function getThreads(searchTerm?: string): Promise<Thread[]>
     }));
 
     revalidatePath("/");
-    return threads;
+    return { threads, nextAfter: data.data.after };
   } catch (error) {
     console.error(error);
-    return [];
+    return { threads: [], nextAfter: null };
   }
 }
